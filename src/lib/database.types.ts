@@ -106,6 +106,9 @@ export interface Database {
           expected_return: number
           status: string
           invested_at: string
+          reviewed_by?: string | null
+          reviewed_at?: string | null
+          rejection_reason?: string | null
         }
         Insert: {
           id?: string
@@ -115,6 +118,9 @@ export interface Database {
           expected_return: number
           status?: string
           invested_at?: string
+          reviewed_by?: string | null
+          reviewed_at?: string | null
+          rejection_reason?: string | null
         }
         Update: {
           id?: string
@@ -124,6 +130,9 @@ export interface Database {
           expected_return?: number
           status?: string
           invested_at?: string
+          reviewed_by?: string | null
+          reviewed_at?: string | null
+          rejection_reason?: string | null
         }
       }
       weekly_updates: {

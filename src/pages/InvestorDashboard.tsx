@@ -103,118 +103,96 @@ export function InvestorDashboard({ onViewProject }: InvestorDashboardProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-6 sm:py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Investment Dashboard</h1>
-          <p className="text-gray-600">Welcome back, {profile?.full_name}!</p>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Investment Dashboard</h1>
+          <p className="text-sm sm:text-base text-gray-600">Welcome back, {profile?.full_name}!</p>
         </div>
 
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                 <DollarSign className="w-5 h-5 text-blue-600" />
               </div>
-              <span className="text-sm text-gray-600">Total Invested</span>
+              <span className="text-xs sm:text-sm text-gray-600">Total Invested</span>
             </div>
-            <div className="text-3xl font-bold text-gray-900">${totalInvested.toLocaleString()}</div>
+            <div className="text-2xl sm:text-3xl font-bold text-gray-900">${totalInvested.toLocaleString()}</div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                 <TrendingUp className="w-5 h-5 text-green-600" />
               </div>
-              <span className="text-sm text-gray-600">Expected Returns</span>
+              <span className="text-xs sm:text-sm text-gray-600">Expected Returns</span>
             </div>
-            <div className="text-3xl font-bold text-gray-900">${totalExpectedReturns.toLocaleString()}</div>
+            <div className="text-2xl sm:text-3xl font-bold text-gray-900">${totalExpectedReturns.toLocaleString()}</div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                 <Briefcase className="w-5 h-5 text-purple-600" />
               </div>
-              <span className="text-sm text-gray-600">Active Investments</span>
+              <span className="text-xs sm:text-sm text-gray-600">Active Investments</span>
             </div>
-            <div className="text-3xl font-bold text-gray-900">{activeInvestments}</div>
+            <div className="text-2xl sm:text-3xl font-bold text-gray-900">{activeInvestments}</div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
                 <TrendingUp className="w-5 h-5 text-yellow-600" />
               </div>
-              <span className="text-sm text-gray-600">Potential Profit</span>
+              <span className="text-xs sm:text-sm text-gray-600">Potential Profit</span>
             </div>
-            <div className="text-3xl font-bold text-gray-900">
+            <div className="text-2xl sm:text-3xl font-bold text-gray-900">
               ${(totalExpectedReturns - totalInvested).toLocaleString()}
             </div>
           </div>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-2xl font-bold text-gray-900">Your Investments</h2>
+          <div className="p-4 sm:p-6 border-b border-gray-200">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Your Investments</h2>
           </div>
 
           {investments.length === 0 ? (
-            <div className="p-12 text-center">
-              <p className="text-gray-600 mb-4">You haven't made any investments yet.</p>
+            <div className="p-8 sm:p-12 text-center">
+              <p className="text-sm sm:text-base text-gray-600 mb-4">You haven't made any investments yet.</p>
               <button
                 onClick={() => window.location.reload()}
-                className="text-green-600 hover:text-green-700 font-semibold"
+                className="text-green-600 hover:text-green-700 font-semibold text-sm sm:text-base"
               >
                 Browse Projects
               </button>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Project
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Category
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Amount Invested
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Expected Return
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Harvest Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {investments.map((investment) => (
-                    <tr key={investment.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4">
-                        <div className="font-medium text-gray-900">{investment.project.title}</div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {investment.project.category}
-                      </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-                        ${investment.amount.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-green-600">
-                        ${investment.expected_return.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4">
+            <>
+              {/* Mobile Card View */}
+              <div className="block lg:hidden divide-y divide-gray-200">
+                {investments.map((investment) => (
+                  <div key={investment.id} className="p-4 hover:bg-gray-50">
+                    <div className="mb-3">
+                      <div className="font-semibold text-gray-900 mb-1">{investment.project.title}</div>
+                      <div className="text-xs text-gray-500">{investment.project.category}</div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1">Amount Invested</div>
+                        <div className="font-semibold text-gray-900">${investment.amount.toLocaleString()}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1">Expected Return</div>
+                        <div className="font-semibold text-green-600">${investment.expected_return.toLocaleString()}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1">Status</div>
                         <span
-                          className={`px-2 py-1 text-xs font-semibold rounded-full flex items-center gap-1 w-fit ${
+                          className={`px-2 py-1 text-xs font-semibold rounded-full inline-flex items-center gap-1 ${
                             investment.status === 'approved'
                               ? 'bg-green-100 text-green-700'
                               : investment.status === 'pending'
@@ -229,39 +207,132 @@ export function InvestorDashboard({ onViewProject }: InvestorDashboardProps) {
                           {investment.status === 'rejected' && <XCircle className="w-3 h-3" />}
                           {investment.status}
                         </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1">Harvest Date</div>
+                        <div className="text-xs text-gray-600 flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
                           {new Date(investment.project.expected_harvest_date).toLocaleDateString()}
                         </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <button
-                            onClick={() => onViewProject(investment.project.id)}
-                            className="text-green-600 hover:text-green-700 font-semibold text-sm"
-                          >
-                            View Project
-                          </button>
-                          {investment.status === 'pending' && (
-                            <button
-                              onClick={() => handleWithdrawInvestment(investment.id, investment.status)}
-                              disabled={deleting === investment.id}
-                              className="text-red-600 hover:text-red-700 font-semibold text-sm flex items-center gap-1 disabled:opacity-50"
-                              title="Withdraw investment request"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                              Withdraw
-                            </button>
-                          )}
-                        </div>
-                      </td>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        onClick={() => onViewProject(investment.project.id)}
+                        className="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-semibold"
+                      >
+                        View Project
+                      </button>
+                      {investment.status === 'pending' && (
+                        <button
+                          onClick={() => handleWithdrawInvestment(investment.id, investment.status)}
+                          disabled={deleting === investment.id}
+                          className="px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 text-sm font-semibold flex items-center gap-1 disabled:opacity-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Withdraw
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Table View */}
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Project
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Category
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Amount Invested
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Expected Return
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Harvest Date
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {investments.map((investment) => (
+                      <tr key={investment.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4">
+                          <div className="font-medium text-gray-900">{investment.project.title}</div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {investment.project.category}
+                        </td>
+                        <td className="px-6 py-4 text-sm font-semibold text-gray-900">
+                          ${investment.amount.toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 text-sm font-semibold text-green-600">
+                          ${investment.expected_return.toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={`px-2 py-1 text-xs font-semibold rounded-full flex items-center gap-1 w-fit ${
+                              investment.status === 'approved'
+                                ? 'bg-green-100 text-green-700'
+                                : investment.status === 'pending'
+                                ? 'bg-orange-100 text-orange-700'
+                                : investment.status === 'rejected'
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-gray-100 text-gray-700'
+                            }`}
+                          >
+                            {investment.status === 'approved' && <CheckCircle className="w-3 h-3" />}
+                            {investment.status === 'pending' && <Clock className="w-3 h-3" />}
+                            {investment.status === 'rejected' && <XCircle className="w-3 h-3" />}
+                            {investment.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-4 h-4" />
+                            {new Date(investment.project.expected_harvest_date).toLocaleDateString()}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={() => onViewProject(investment.project.id)}
+                              className="text-green-600 hover:text-green-700 font-semibold text-sm"
+                            >
+                              View Project
+                            </button>
+                            {investment.status === 'pending' && (
+                              <button
+                                onClick={() => handleWithdrawInvestment(investment.id, investment.status)}
+                                disabled={deleting === investment.id}
+                                className="text-red-600 hover:text-red-700 font-semibold text-sm flex items-center gap-1 disabled:opacity-50"
+                                title="Withdraw investment request"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                Withdraw
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
       </div>

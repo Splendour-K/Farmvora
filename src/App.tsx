@@ -4,7 +4,6 @@ import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { Hero } from './components/landing/Hero';
 import { FeaturedProducts } from './components/landing/FeaturedProducts';
-import { AboutUs } from './components/landing/AboutUs';
 import { HowItWorks } from './components/landing/HowItWorks';
 import { WhyChooseUs } from './components/landing/WhyChooseUs';
 import { Stats } from './components/landing/Stats';
@@ -19,9 +18,10 @@ import { ProfilePage } from './pages/ProfilePage';
 import { FavoritesPage } from './pages/FavoritesPage';
 import { StorePage } from './pages/StorePage';
 import { CartPage } from './pages/CartPage';
+import { AboutPage } from './pages/AboutPage';
 
 function AppContent() {
-  const { user, profile, isAdmin, loading } = useAuth();
+  const { user, isAdmin, loading } = useAuth();
   const [currentPage, setCurrentPage] = useState('home');
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
@@ -67,9 +67,12 @@ function AppContent() {
             <Stats />
             <WhyChooseUs />
             <HowItWorks />
-            <AboutUs />
             <CallToAction onGetStarted={() => handleNavigate(user ? 'projects' : 'signup')} />
           </>
+        )}
+
+        {currentPage === 'about' && (
+          <AboutPage />
         )}
 
         {currentPage === 'store' && (
@@ -133,7 +136,7 @@ function AppContent() {
         )}
       </main>
 
-      <Footer />
+      <Footer onNavigate={handleNavigate} />
     </div>
   );
 }

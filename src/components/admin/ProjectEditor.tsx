@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Edit2, Save, X, Plus, Trash2 } from 'lucide-react';
+import type { Dispatch, SetStateAction } from 'react';
 
 interface Project {
   id: string;
@@ -21,6 +22,195 @@ interface Project {
   emergency_buffer_percentage: number;
   amount_raised_usd: number;
   amount_raised_ngn: number;
+}
+
+interface ProjectFormProps {
+  formData: Partial<Project>;
+  setFormData: Dispatch<SetStateAction<Partial<Project>>>;
+  onSave: () => void;
+  onCancel: () => void;
+  isEdit: boolean;
+}
+
+function ProjectFormComponent({ formData, setFormData, onSave, onCancel, isEdit }: ProjectFormProps) {
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+      <h3 className="text-xl font-bold text-gray-900 mb-4">{isEdit ? 'Edit Project' : 'Create New Project'}</h3>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Project Title</label>
+          <input
+            type="text"
+            value={formData.title || ''}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+          />
+        </div>
+
+        <div className="col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <textarea
+            rows={4}
+            value={formData.description || ''}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+          <input
+            type="text"
+            value={formData.location || ''}
+            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+          <select
+            value={formData.category || 'crops'}
+            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+          >
+            <option value="crops">Crops</option>
+            <option value="livestock">Livestock</option>
+            <option value="aquaculture">Aquaculture</option>
+            <option value="poultry">Poultry</option>
+            <option value="horticulture">Horticulture</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Required Capital (USD)</label>
+          <input
+            type="number"
+            step="0.01"
+            value={formData.required_capital || 0}
+            onChange={(e) => setFormData({ ...formData, required_capital: parseFloat(e.target.value) || 0 })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Expected ROI (%)</label>
+          <input
+            type="number"
+            step="0.01"
+            value={formData.expected_roi || 0}
+            onChange={(e) => setFormData({ ...formData, expected_roi: parseFloat(e.target.value) || 0 })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Duration (months)</label>
+          <input
+            type="number"
+            value={formData.duration_months || 0}
+            onChange={(e) => setFormData({ ...formData, duration_months: parseInt(e.target.value) || 0 })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Emergency Buffer (%)</label>
+          <input
+            type="number"
+            value={formData.emergency_buffer_percentage || 10}
+            onChange={(e) => setFormData({ ...formData, emergency_buffer_percentage: parseInt(e.target.value) || 10 })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+          <input
+            type="date"
+            value={formData.start_date || ''}
+            onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Expected Harvest Date</label>
+          <input
+            type="date"
+            value={formData.expected_harvest_date || ''}
+            onChange={(e) => setFormData({ ...formData, expected_harvest_date: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Risk Level</label>
+          <select
+            value={formData.risk_level || 'low'}
+            onChange={(e) => setFormData({ ...formData, risk_level: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+          >
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <select
+            value={formData.status || 'active'}
+            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+          >
+            <option value="active">Active</option>
+            <option value="upcoming">Upcoming</option>
+            <option value="completed">Completed</option>
+            <option value="paused">Paused</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Owner Name</label>
+          <input
+            type="text"
+            value={formData.owner_name || ''}
+            onChange={(e) => setFormData({ ...formData, owner_name: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+          />
+        </div>
+
+        <div className="col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Owner Bio</label>
+          <textarea
+            rows={2}
+            value={formData.owner_bio || ''}
+            onChange={(e) => setFormData({ ...formData, owner_bio: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+          />
+        </div>
+      </div>
+
+      <div className="flex gap-3 mt-6">
+        <button
+          onClick={onSave}
+          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+        >
+          <Save className="w-4 h-4" />
+          {isEdit ? 'Update Project' : 'Create Project'}
+        </button>
+        <button
+          onClick={onCancel}
+          className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 flex items-center gap-2"
+        >
+          <X className="w-4 h-4" />
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export function ProjectEditor() {
@@ -176,185 +366,6 @@ export function ProjectEditor() {
     return <div className="text-center py-8">Loading projects...</div>;
   }
 
-  const ProjectForm = ({ onSave, onCancel, isEdit }: { onSave: () => void; onCancel: () => void; isEdit: boolean }) => (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-      <h3 className="text-xl font-bold text-gray-900 mb-4">{isEdit ? 'Edit Project' : 'Create New Project'}</h3>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Project Title</label>
-          <input
-            type="text"
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-          />
-        </div>
-
-        <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-          <textarea
-            rows={4}
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-          <input
-            type="text"
-            value={formData.location}
-            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-          <select
-            value={formData.category}
-            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-          >
-            <option value="crops">Crops</option>
-            <option value="livestock">Livestock</option>
-            <option value="aquaculture">Aquaculture</option>
-            <option value="poultry">Poultry</option>
-            <option value="horticulture">Horticulture</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Required Capital (USD)</label>
-          <input
-            type="number"
-            step="0.01"
-            value={formData.required_capital}
-            onChange={(e) => setFormData({ ...formData, required_capital: parseFloat(e.target.value) || 0 })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Expected ROI (%)</label>
-          <input
-            type="number"
-            step="0.01"
-            value={formData.expected_roi}
-            onChange={(e) => setFormData({ ...formData, expected_roi: parseFloat(e.target.value) || 0 })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Duration (months)</label>
-          <input
-            type="number"
-            value={formData.duration_months}
-            onChange={(e) => setFormData({ ...formData, duration_months: parseInt(e.target.value) || 0 })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Emergency Buffer (%)</label>
-          <input
-            type="number"
-            value={formData.emergency_buffer_percentage}
-            onChange={(e) => setFormData({ ...formData, emergency_buffer_percentage: parseInt(e.target.value) || 10 })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-          <input
-            type="date"
-            value={formData.start_date}
-            onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Expected Harvest Date</label>
-          <input
-            type="date"
-            value={formData.expected_harvest_date}
-            onChange={(e) => setFormData({ ...formData, expected_harvest_date: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Risk Level</label>
-          <select
-            value={formData.risk_level}
-            onChange={(e) => setFormData({ ...formData, risk_level: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-          >
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-          <select
-            value={formData.status}
-            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-          >
-            <option value="active">Active</option>
-            <option value="upcoming">Upcoming</option>
-            <option value="completed">Completed</option>
-            <option value="paused">Paused</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Owner Name</label>
-          <input
-            type="text"
-            value={formData.owner_name}
-            onChange={(e) => setFormData({ ...formData, owner_name: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-          />
-        </div>
-
-        <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Owner Bio</label>
-          <textarea
-            rows={2}
-            value={formData.owner_bio}
-            onChange={(e) => setFormData({ ...formData, owner_bio: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-          />
-        </div>
-      </div>
-
-      <div className="flex gap-3 mt-6">
-        <button
-          onClick={onSave}
-          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
-        >
-          <Save className="w-4 h-4" />
-          {isEdit ? 'Update Project' : 'Create Project'}
-        </button>
-        <button
-          onClick={onCancel}
-          className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 flex items-center gap-2"
-        >
-          <X className="w-4 h-4" />
-          Cancel
-        </button>
-      </div>
-    </div>
-  );
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -371,7 +382,9 @@ export function ProjectEditor() {
       </div>
 
       {creating && (
-        <ProjectForm
+        <ProjectFormComponent
+          formData={formData}
+          setFormData={setFormData}
           onSave={handleCreate}
           onCancel={cancelEdit}
           isEdit={false}
@@ -382,7 +395,9 @@ export function ProjectEditor() {
         {projects.map((project) => (
           <div key={project.id} className="bg-white rounded-xl border border-gray-200 p-6">
             {editing === project.id ? (
-              <ProjectForm
+              <ProjectFormComponent
+                formData={formData}
+                setFormData={setFormData}
                 onSave={() => handleUpdate(project.id)}
                 onCancel={cancelEdit}
                 isEdit={true}

@@ -340,7 +340,7 @@ export function ProductManagement() {
                               type="number"
                               step="0.01"
                               value={formData.price_usd}
-                              onChange={(e) => setFormData({ ...formData, price_usd: parseFloat(e.target.value) })}
+                              onChange={(e) => setFormData({ ...formData, price_usd: parseFloat(e.target.value) || 0 })}
                               className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                             />
                           </div>
@@ -350,7 +350,7 @@ export function ProductManagement() {
                               type="number"
                               step="0.01"
                               value={formData.price_ngn}
-                              onChange={(e) => setFormData({ ...formData, price_ngn: parseFloat(e.target.value) })}
+                              onChange={(e) => setFormData({ ...formData, price_ngn: parseFloat(e.target.value) || 0 })}
                               className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                             />
                           </div>
@@ -368,7 +368,7 @@ export function ProductManagement() {
                             <input
                               type="number"
                               value={formData.stock_quantity}
-                              onChange={(e) => setFormData({ ...formData, stock_quantity: parseInt(e.target.value) })}
+                              onChange={(e) => setFormData({ ...formData, stock_quantity: parseInt(e.target.value) || 0 })}
                               className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                             />
                           </div>

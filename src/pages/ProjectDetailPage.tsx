@@ -35,7 +35,7 @@ interface UserInvestment {
   id: string;
   amount: number;
   status: string;
-  created_at: string;
+  invested_at: string;
   rejection_reason: string | null;
 }
 
@@ -72,14 +72,19 @@ export function ProjectDetailPage({ projectId, onBack, onShowAuth }: ProjectDeta
       setUpdates(updatesRes.data || []);
 
       if (user) {
+        console.log('Loading investments for user:', user.id, 'project:', projectId);
+        
         const { data: investments, error: invError } = await supabase
           .from('investments')
-          .select('id, amount, status, created_at, rejection_reason')
+          .select('id, amount, status, invested_at, rejection_reason')
           .eq('investor_id', user.id)
           .eq('project_id', projectId)
-          .order('created_at', { ascending: false });
+          .order('invested_at', { ascending: false });
 
-        if (!invError) {
+        if (invError) {
+          console.error('Error loading investments:', invError);
+        } else {
+          console.log('User investments loaded:', investments);
           setUserInvestments(investments || []);
         }
       }
@@ -104,24 +109,38 @@ export function ProjectDetailPage({ projectId, onBack, onShowAuth }: ProjectDeta
     try {
       const expectedReturn = amount * (project.expected_roi / 100);
 
-      const { error } = await supabase.from('investments').insert({
+      const investmentData = {
         investor_id: user.id,
         project_id: project.id,
         amount,
         expected_return: expectedReturn,
         status: 'pending'
-      });
+      };
 
-      if (error) throw error;
+      console.log('Attempting to create investment:', investmentData);
+
+      const { data, error } = await supabase
+        .from('investments')
+        .insert(investmentData as any)
+        .select();
+
+      if (error) {
+        console.error('Investment insert error:', error);
+        throw error;
+      }
+
+      console.log('Investment created successfully:', data);
 
       alert('Investment submitted for approval! You will be notified once reviewed.');
       setShowInvestModal(false);
       setInvestAmount('');
       setIsAddingFunds(false);
-      loadProjectDetails();
+      
+      // Reload to show pending status
+      await loadProjectDetails();
     } catch (error) {
       console.error('Error investing:', error);
-      alert('Investment failed. Please try again.');
+      alert(`Investment failed: ${error instanceof Error ? error.message : 'Please try again.'}`);
     } finally {
       setInvesting(false);
     }
@@ -156,6 +175,25 @@ export function ProjectDetailPage({ projectId, onBack, onShowAuth }: ProjectDeta
   const pendingInvestment = userInvestments.find(inv => inv.status === 'pending');
   const hasApprovedInvestment = userInvestments.some(inv => inv.status === 'approved');
   const rejectedInvestments = userInvestments.filter(inv => inv.status === 'rejected');
+  
+  // Determine if investment is allowed
+  const isProjectActive = project.status === 'active';
+  const isProjectUpcoming = project.status === 'upcoming';
+  const isProjectEnded = project.status === 'completed' || project.status === 'paused';
+  const isFundingComplete = fundingPercentage >= 100;
+  const canInvest = isProjectActive && !isFundingComplete && !isProjectEnded;
+
+  console.log('Button display state:', {
+    userInvestments,
+    pendingInvestment,
+    hasApprovedInvestment,
+    totalUserInvestment,
+    canInvest,
+    isProjectActive,
+    isProjectUpcoming,
+    isProjectEnded,
+    isFundingComplete
+  });
 
   // Show login prompt if user is not authenticated
   if (!user) {
@@ -251,27 +289,47 @@ export function ProjectDetailPage({ projectId, onBack, onShowAuth }: ProjectDeta
                           <p className="text-sm text-green-700">Total: ${totalUserInvestment.toLocaleString()}</p>
                         </div>
                       </div>
-                      <button
-                        onClick={() => {
-                          setIsAddingFunds(true);
-                          setShowInvestModal(true);
-                        }}
-                        className="flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
-                      >
-                        <Plus className="w-5 h-5" />
-                        Add More Funds
-                      </button>
+                      {canInvest && (
+                        <button
+                          onClick={() => {
+                            setIsAddingFunds(true);
+                            setShowInvestModal(true);
+                          }}
+                          className="flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
+                        >
+                          <Plus className="w-5 h-5" />
+                          Add More Funds
+                        </button>
+                      )}
                     </>
                   ) : (
-                    <button
-                      onClick={() => {
-                        setIsAddingFunds(false);
-                        setShowInvestModal(true);
-                      }}
-                      className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
-                    >
-                      Invest Now
-                    </button>
+                    <>
+                      {isProjectUpcoming ? (
+                        <button
+                          onClick={() => {
+                            setIsAddingFunds(false);
+                            setShowInvestModal(true);
+                          }}
+                          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                        >
+                          Express Interest
+                        </button>
+                      ) : canInvest ? (
+                        <button
+                          onClick={() => {
+                            setIsAddingFunds(false);
+                            setShowInvestModal(true);
+                          }}
+                          className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
+                        >
+                          Invest Now
+                        </button>
+                      ) : (
+                        <div className="px-6 py-3 bg-gray-100 text-gray-500 rounded-lg text-center font-semibold cursor-not-allowed">
+                          {isFundingComplete ? 'Funding Complete' : isProjectEnded ? 'Project Ended' : 'Investment Unavailable'}
+                        </div>
+                      )}
+                    </>
                   )}
 
                   {rejectedInvestments.length > 0 && (
@@ -414,13 +472,21 @@ export function ProjectDetailPage({ projectId, onBack, onShowAuth }: ProjectDeta
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl max-w-md w-full p-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              {isAddingFunds ? 'Add More Funds' : 'Invest in'} {project.title}
+              {isAddingFunds ? 'Add More Funds' : isProjectUpcoming ? 'Express Interest in' : 'Invest in'} {project.title}
             </h2>
 
             {isAddingFunds && (
               <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                 <p className="text-sm text-green-900">
                   <span className="font-semibold">Current Investment:</span> ${totalUserInvestment.toLocaleString()}
+                </p>
+              </div>
+            )}
+
+            {isProjectUpcoming && !isAddingFunds && (
+              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-900">
+                  This project is upcoming. By expressing interest, you'll be notified when it becomes active and ready for investment.
                 </p>
               </div>
             )}
@@ -461,11 +527,15 @@ export function ProjectDetailPage({ projectId, onBack, onShowAuth }: ProjectDeta
 
             <div className="mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg space-y-2">
               <p className="text-sm text-orange-900">
-                Your investment will be reviewed by our admin team before being approved.
+                {isProjectUpcoming 
+                  ? 'Your interest will be recorded and you\'ll be notified when the project becomes active.' 
+                  : 'Your investment will be reviewed by our admin team before being approved.'}
               </p>
-              <p className="text-xs text-orange-800">
-                Note: 10% emergency buffer is reserved from all raised funds for farm protection, securing your ROI.
-              </p>
+              {!isProjectUpcoming && (
+                <p className="text-xs text-orange-800">
+                  Note: 10% emergency buffer is reserved from all raised funds for farm protection, securing your ROI.
+                </p>
+              )}
             </div>
 
             <div className="flex gap-3">
@@ -483,9 +553,9 @@ export function ProjectDetailPage({ projectId, onBack, onShowAuth }: ProjectDeta
               <button
                 onClick={handleInvest}
                 disabled={investing || !investAmount || parseFloat(investAmount) <= 0}
-                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                className={`flex-1 px-4 py-2 ${isProjectUpcoming ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'} text-white rounded-lg disabled:opacity-50`}
               >
-                {investing ? 'Processing...' : 'Submit for Approval'}
+                {investing ? 'Processing...' : isProjectUpcoming ? 'Submit Interest' : 'Submit for Approval'}
               </button>
             </div>
           </div>

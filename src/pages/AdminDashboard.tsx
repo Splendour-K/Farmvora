@@ -29,7 +29,7 @@ interface Investment {
   id: string;
   amount: number;
   ngn_amount: number;
-  created_at: string;
+  invested_at: string;
   status: string;
   investor_id: string;
   project_id: string;
@@ -163,13 +163,13 @@ export function AdminDashboard() {
           amount,
           ngn_amount,
           status,
-          created_at,
+          invested_at,
           investor_id,
           project_id,
           investor:investor_id(email, full_name),
           project:project_id(title, currency)
         `)
-        .order('created_at', { ascending: false });
+        .order('invested_at', { ascending: false });
 
       if (error) throw error;
       setInvestments(data || []);
@@ -503,7 +503,7 @@ export function AdminDashboard() {
     ...investments.slice(0, 5).map(inv => ({
       type: 'investment',
       message: `${inv.investor?.email} invested $${inv.amount.toLocaleString()}`,
-      time: new Date(inv.created_at).toLocaleDateString(),
+      time: new Date(inv.invested_at).toLocaleDateString(),
     })),
     ...updates.slice(0, 5).map(upd => ({
       type: 'update',
@@ -995,7 +995,7 @@ export function AdminDashboard() {
                               </span>
                             </td>
                             <td className="px-6 py-4 text-sm text-gray-600">
-                              {new Date(investment.created_at).toLocaleDateString()}
+                              {new Date(investment.invested_at).toLocaleDateString()}
                             </td>
                             <td className="px-6 py-4">
                               <button

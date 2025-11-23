@@ -5,7 +5,7 @@ import { Check, X, Clock, DollarSign } from 'lucide-react';
 interface PendingInvestment {
   id: string;
   amount: number;
-  created_at: string;
+  invested_at: string;
   status: string;
   investor_id: string;
   project_id: string;
@@ -28,12 +28,14 @@ export function InvestmentApprovals() {
 
   const loadPendingInvestments = async () => {
     try {
+      console.log('Loading pending investments...');
+      
       const { data, error } = await supabase
         .from('investments')
         .select(`
           id,
           amount,
-          created_at,
+          invested_at,
           status,
           investor_id,
           project_id,
@@ -41,9 +43,14 @@ export function InvestmentApprovals() {
           project:project_id(title)
         `)
         .eq('status', 'pending')
-        .order('created_at', { ascending: false });
+        .order('invested_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading pending investments:', error);
+        throw error;
+      }
+      
+      console.log('Pending investments loaded:', data);
       setPendingInvestments(data || []);
     } catch (error) {
       console.error('Error loading pending investments:', error);
@@ -171,8 +178,8 @@ export function InvestmentApprovals() {
                     <div>
                       <p className="text-sm text-gray-500">Submitted</p>
                       <p className="font-medium text-gray-900">
-                        {new Date(investment.created_at).toLocaleDateString()} at{' '}
-                        {new Date(investment.created_at).toLocaleTimeString()}
+                        {new Date(investment.invested_at).toLocaleDateString()} at{' '}
+                        {new Date(investment.invested_at).toLocaleTimeString()}
                       </p>
                     </div>
                   </div>
