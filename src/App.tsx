@@ -4,6 +4,11 @@ import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { Hero } from './components/landing/Hero';
 import { FeaturedProducts } from './components/landing/FeaturedProducts';
+import { AboutUs } from './components/landing/AboutUs';
+import { HowItWorks } from './components/landing/HowItWorks';
+import { WhyChooseUs } from './components/landing/WhyChooseUs';
+import { Stats } from './components/landing/Stats';
+import { CallToAction } from './components/landing/CallToAction';
 import { LoginForm } from './components/auth/LoginForm';
 import { SignupForm } from './components/auth/SignupForm';
 import { ProjectsPage } from './pages/ProjectsPage';
@@ -59,6 +64,11 @@ function AppContent() {
               onVisitStore={() => handleNavigate('store')}
             />
             <FeaturedProducts onVisitStore={() => handleNavigate('store')} />
+            <Stats />
+            <WhyChooseUs />
+            <HowItWorks />
+            <AboutUs />
+            <CallToAction onGetStarted={() => handleNavigate(user ? 'projects' : 'signup')} />
           </>
         )}
 
@@ -102,6 +112,7 @@ function AppContent() {
           <ProjectDetailPage
             projectId={selectedProjectId}
             onBack={() => handleNavigate('projects')}
+            onShowAuth={(tab) => handleNavigate(tab)}
           />
         )}
 

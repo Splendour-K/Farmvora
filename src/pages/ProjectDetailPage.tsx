@@ -42,9 +42,10 @@ interface UserInvestment {
 interface ProjectDetailPageProps {
   projectId: string;
   onBack: () => void;
+  onShowAuth?: (tab: 'login' | 'signup') => void;
 }
 
-export function ProjectDetailPage({ projectId, onBack }: ProjectDetailPageProps) {
+export function ProjectDetailPage({ projectId, onBack, onShowAuth }: ProjectDetailPageProps) {
   const { user } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
   const [updates, setUpdates] = useState<WeeklyUpdate[]>([]);
@@ -155,6 +156,48 @@ export function ProjectDetailPage({ projectId, onBack }: ProjectDetailPageProps)
   const pendingInvestment = userInvestments.find(inv => inv.status === 'pending');
   const hasApprovedInvestment = userInvestments.some(inv => inv.status === 'approved');
   const rejectedInvestments = userInvestments.filter(inv => inv.status === 'rejected');
+
+  // Show login prompt if user is not authenticated
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back to Projects
+          </button>
+
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-12 text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Shield className="w-8 h-8 text-green-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">Login Required</h2>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+              Please log in or create an account to view project details and make investments.
+              Creating an account is free and takes less than a minute.
+            </p>
+            <div className="flex gap-4 justify-center">
+              <button
+                onClick={() => onShowAuth && onShowAuth('login')}
+                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold"
+              >
+                Log In
+              </button>
+              <button
+                onClick={() => onShowAuth && onShowAuth('signup')}
+                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold"
+              >
+                Sign Up
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
