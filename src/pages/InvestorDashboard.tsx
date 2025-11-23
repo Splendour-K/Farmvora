@@ -1,0 +1,270 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
+import { TrendingUp, DollarSign, Briefcase, Calendar, Trash2, Clock, CheckCircle, XCircle } from 'lucide-react';
+
+interface Investment {
+  id: string;
+  amount: number;
+  expected_return: number;
+  status: string;
+  invested_at: string;
+  project: {
+    id: string;
+    title: string;
+    category: string;
+    status: string;
+    expected_roi: number;
+    expected_harvest_date: string;
+  };
+}
+
+interface InvestorDashboardProps {
+  onViewProject: (projectId: string) => void;
+}
+
+export function InvestorDashboard({ onViewProject }: InvestorDashboardProps) {
+  const { user, profile } = useAuth();
+  const [investments, setInvestments] = useState<Investment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      loadInvestments();
+    }
+  }, [user]);
+
+  const loadInvestments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('investments')
+        .select(`
+          *,
+          project:projects(id, title, category, status, expected_roi, expected_harvest_date)
+        `)
+        .eq('investor_id', user!.id)
+        .order('invested_at', { ascending: false});
+
+      if (error) throw error;
+      setInvestments(data || []);
+    } catch (error) {
+      console.error('Error loading investments:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleWithdrawInvestment = async (investmentId: string, status: string) => {
+    if (status !== 'pending') {
+      alert('You can only withdraw pending investments. Please contact admin for approved investments.');
+      return;
+    }
+
+    if (!confirm('Are you sure you want to withdraw this investment request?')) {
+      return;
+    }
+
+    setDeleting(investmentId);
+    try {
+      const { data, error } = await supabase.rpc('withdraw_investment', {
+        investment_id: investmentId
+      });
+
+      if (error) throw error;
+
+      if (data && !data.success) {
+        throw new Error(data.error || 'Failed to withdraw investment');
+      }
+
+      alert('Investment withdrawn successfully');
+      loadInvestments();
+    } catch (error: any) {
+      console.error('Error withdrawing investment:', error);
+      alert(`Failed to withdraw investment: ${error.message}`);
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  const totalInvested = investments.reduce((sum, inv) => sum + inv.amount, 0);
+  const totalExpectedReturns = investments.reduce((sum, inv) => sum + inv.expected_return, 0);
+  const activeInvestments = investments.filter(inv => inv.status === 'active').length;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Investment Dashboard</h1>
+          <p className="text-gray-600">Welcome back, {profile?.full_name}!</p>
+        </div>
+
+        <div className="grid md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <DollarSign className="w-5 h-5 text-blue-600" />
+              </div>
+              <span className="text-sm text-gray-600">Total Invested</span>
+            </div>
+            <div className="text-3xl font-bold text-gray-900">${totalInvested.toLocaleString()}</div>
+          </div>
+
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-green-600" />
+              </div>
+              <span className="text-sm text-gray-600">Expected Returns</span>
+            </div>
+            <div className="text-3xl font-bold text-gray-900">${totalExpectedReturns.toLocaleString()}</div>
+          </div>
+
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Briefcase className="w-5 h-5 text-purple-600" />
+              </div>
+              <span className="text-sm text-gray-600">Active Investments</span>
+            </div>
+            <div className="text-3xl font-bold text-gray-900">{activeInvestments}</div>
+          </div>
+
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-yellow-600" />
+              </div>
+              <span className="text-sm text-gray-600">Potential Profit</span>
+            </div>
+            <div className="text-3xl font-bold text-gray-900">
+              ${(totalExpectedReturns - totalInvested).toLocaleString()}
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="p-6 border-b border-gray-200">
+            <h2 className="text-2xl font-bold text-gray-900">Your Investments</h2>
+          </div>
+
+          {investments.length === 0 ? (
+            <div className="p-12 text-center">
+              <p className="text-gray-600 mb-4">You haven't made any investments yet.</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="text-green-600 hover:text-green-700 font-semibold"
+              >
+                Browse Projects
+              </button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Project
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Category
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Amount Invested
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Expected Return
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Harvest Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {investments.map((investment) => (
+                    <tr key={investment.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <div className="font-medium text-gray-900">{investment.project.title}</div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {investment.project.category}
+                      </td>
+                      <td className="px-6 py-4 text-sm font-semibold text-gray-900">
+                        ${investment.amount.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 text-sm font-semibold text-green-600">
+                        ${investment.expected_return.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`px-2 py-1 text-xs font-semibold rounded-full flex items-center gap-1 w-fit ${
+                            investment.status === 'approved'
+                              ? 'bg-green-100 text-green-700'
+                              : investment.status === 'pending'
+                              ? 'bg-orange-100 text-orange-700'
+                              : investment.status === 'rejected'
+                              ? 'bg-red-100 text-red-700'
+                              : 'bg-gray-100 text-gray-700'
+                          }`}
+                        >
+                          {investment.status === 'approved' && <CheckCircle className="w-3 h-3" />}
+                          {investment.status === 'pending' && <Clock className="w-3 h-3" />}
+                          {investment.status === 'rejected' && <XCircle className="w-3 h-3" />}
+                          {investment.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          {new Date(investment.project.expected_harvest_date).toLocaleDateString()}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => onViewProject(investment.project.id)}
+                            className="text-green-600 hover:text-green-700 font-semibold text-sm"
+                          >
+                            View Project
+                          </button>
+                          {investment.status === 'pending' && (
+                            <button
+                              onClick={() => handleWithdrawInvestment(investment.id, investment.status)}
+                              disabled={deleting === investment.id}
+                              className="text-red-600 hover:text-red-700 font-semibold text-sm flex items-center gap-1 disabled:opacity-50"
+                              title="Withdraw investment request"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Withdraw
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
