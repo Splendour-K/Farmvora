@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { TrendingUp, DollarSign, Briefcase, Calendar, Trash2, Clock, CheckCircle, XCircle } from 'lucide-react';
@@ -19,11 +20,8 @@ interface Investment {
   };
 }
 
-interface InvestorDashboardProps {
-  onViewProject: (projectId: string) => void;
-}
-
-export function InvestorDashboard({ onViewProject }: InvestorDashboardProps) {
+export function InvestorDashboard() {
+  const navigate = useNavigate();
   const { user, profile } = useAuth();
   const [investments, setInvestments] = useState<Investment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,10 +30,38 @@ export function InvestorDashboard({ onViewProject }: InvestorDashboardProps) {
   useEffect(() => {
     if (user) {
       loadInvestments();
+
+      // Set up realtime subscription for investment changes
+      const channel = supabase
+        .channel('user-investments')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'investments',
+            filter: `investor_id=eq.${user.id}`,
+          },
+          (payload) => {
+            console.log('Investment changed:', payload);
+            // Reload investments when there's any change (delete, update, insert)
+            loadInvestments();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
 
   const loadInvestments = async () => {
+    if (!user) {
+      console.log('No user found, skipping investment load');
+      return;
+    }
+    
     try {
       const { data, error } = await supabase
         .from('investments')
@@ -43,7 +69,7 @@ export function InvestorDashboard({ onViewProject }: InvestorDashboardProps) {
           *,
           project:projects(id, title, category, status, expected_roi, expected_harvest_date)
         `)
-        .eq('investor_id', user!.id)
+        .eq('investor_id', user.id)
         .order('invested_at', { ascending: false});
 
       if (error) throw error;
@@ -87,9 +113,18 @@ export function InvestorDashboard({ onViewProject }: InvestorDashboardProps) {
     }
   };
 
-  const totalInvested = investments.reduce((sum, inv) => sum + inv.amount, 0);
-  const totalExpectedReturns = investments.reduce((sum, inv) => sum + inv.expected_return, 0);
-  const activeInvestments = investments.filter(inv => inv.status === 'active').length;
+  // Separate approved and pending investments
+  const approvedInvestments = investments.filter(inv => inv.status === 'approved');
+  const pendingInvestments = investments.filter(inv => inv.status === 'pending');
+  
+  // Calculate totals only from approved investments
+  const totalInvested = approvedInvestments.reduce((sum, inv) => sum + inv.amount, 0);
+  const totalExpectedReturns = approvedInvestments.reduce((sum, inv) => sum + inv.expected_return, 0);
+  const activeInvestments = approvedInvestments.filter(inv => inv.status === 'approved').length;
+  
+  // Check if there are any pending investments
+  const hasPendingInvestments = pendingInvestments.length > 0;
+  const pendingAmount = pendingInvestments.reduce((sum, inv) => sum + inv.amount, 0);
 
   if (loading) {
     return (
@@ -118,7 +153,14 @@ export function InvestorDashboard({ onViewProject }: InvestorDashboardProps) {
               </div>
               <span className="text-xs sm:text-sm text-gray-600">Total Invested</span>
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-gray-900">${totalInvested.toLocaleString()}</div>
+            <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+              ${totalInvested.toLocaleString()}
+              {hasPendingInvestments && (
+                <span className="block text-sm font-normal text-yellow-600 mt-1">
+                  + ${pendingAmount.toLocaleString()} Pending
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200">
@@ -219,7 +261,7 @@ export function InvestorDashboard({ onViewProject }: InvestorDashboardProps) {
 
                     <div className="flex gap-2 mt-3">
                       <button
-                        onClick={() => onViewProject(investment.project.id)}
+                        onClick={() => navigate(`/projects/${investment.project.id}`)}
                         className="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-semibold"
                       >
                         View Project
@@ -309,7 +351,7 @@ export function InvestorDashboard({ onViewProject }: InvestorDashboardProps) {
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <button
-                              onClick={() => onViewProject(investment.project.id)}
+                              onClick={() => navigate(`/projects/${investment.project.id}`)}
                               className="text-green-600 hover:text-green-700 font-semibold text-sm"
                             >
                               View Project

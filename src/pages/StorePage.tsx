@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { ShoppingCart, Search, Filter, Plus, Check, Eye } from 'lucide-react';
@@ -23,11 +24,8 @@ interface CartItem {
   product: Product;
 }
 
-interface StorePageProps {
-  onNavigate?: (page: string) => void;
-}
-
-export function StorePage({ onNavigate }: StorePageProps = {}) {
+export function StorePage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -125,11 +123,7 @@ export function StorePage({ onNavigate }: StorePageProps = {}) {
   };
 
   const handleViewCart = () => {
-    if (onNavigate) {
-      onNavigate('cart');
-    } else {
-      window.location.href = '/cart';
-    }
+    navigate('/cart');
   };
 
   const filteredProducts = products.filter(p => {

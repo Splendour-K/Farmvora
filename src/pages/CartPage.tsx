@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowLeft, MessageCircle, CreditCard } from 'lucide-react';
@@ -21,11 +22,8 @@ interface CartItem {
   product: Product;
 }
 
-interface CartPageProps {
-  onNavigate: (page: string) => void;
-}
-
-export function CartPage({ onNavigate }: CartPageProps) {
+export function CartPage() {
+  const navigate = useNavigate();
   const { user, profile } = useAuth();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -209,7 +207,7 @@ export function CartPage({ onNavigate }: CartPageProps) {
             .eq('user_id', user.id);
 
           alert('Payment successful! Your order has been placed.');
-          onNavigate('dashboard');
+          navigate('/dashboard');
         },
         onClose: () => {
           setProcessingOrder(false);
@@ -235,7 +233,7 @@ export function CartPage({ onNavigate }: CartPageProps) {
           <ShoppingBag className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Sign in to view your cart</h2>
           <button
-            onClick={() => onNavigate('login')}
+            onClick={() => navigate('/login')}
             className="text-green-600 hover:text-green-700 font-semibold"
           >
             Sign In
@@ -262,7 +260,7 @@ export function CartPage({ onNavigate }: CartPageProps) {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <button
-          onClick={() => onNavigate('store')}
+          onClick={() => navigate('/store')}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -277,7 +275,7 @@ export function CartPage({ onNavigate }: CartPageProps) {
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h2>
             <p className="text-gray-600 mb-6">Add some products from our store</p>
             <button
-              onClick={() => onNavigate('store')}
+              onClick={() => navigate('/store')}
               className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
             >
               Browse Products

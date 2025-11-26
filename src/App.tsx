@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
@@ -20,25 +20,64 @@ import { StorePage } from './pages/StorePage';
 import { CartPage } from './pages/CartPage';
 import { AboutPage } from './pages/AboutPage';
 
-function AppContent() {
-  const { user, isAdmin, loading } = useAuth();
-  const [currentPage, setCurrentPage] = useState('home');
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+// Homepage component
+function HomePage() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const handleNavigate = (page: string, projectId?: string) => {
-    if (projectId) {
-      setSelectedProjectId(projectId);
-      setCurrentPage('project-detail');
-    } else {
-      setCurrentPage(page);
-      setSelectedProjectId(null);
-    }
-  };
+  return (
+    <>
+      <Hero
+        onGetStarted={() => navigate(user ? '/projects' : '/signup')}
+        onBrowseProjects={() => navigate('/projects')}
+        onVisitStore={() => navigate('/store')}
+      />
+      <FeaturedProducts onVisitStore={() => navigate('/store')} />
+      <Stats />
+      <WhyChooseUs />
+      <HowItWorks />
+      <CallToAction onGetStarted={() => navigate(user ? '/projects' : '/signup')} />
+    </>
+  );
+}
 
-  const handleViewProject = (projectId: string) => {
-    setSelectedProjectId(projectId);
-    setCurrentPage('project-detail');
-  };
+// Login page component
+function LoginPage() {
+  const navigate = useNavigate();
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
+      <div className="max-w-md w-full bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+        <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Welcome Back</h2>
+        <LoginForm
+          onToggleForm={() => navigate('/signup')}
+          onSuccess={() => navigate('/projects')}
+        />
+      </div>
+    </div>
+  );
+}
+
+// Signup page component
+function SignupPage() {
+  const navigate = useNavigate();
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
+      <div className="max-w-md w-full bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+        <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Create Account</h2>
+        <SignupForm
+          onToggleForm={() => navigate('/login')}
+          onSuccess={() => navigate('/projects')}
+        />
+      </div>
+    </div>
+  );
+}
+
+// Protected Route wrapper
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -51,102 +90,108 @@ function AppContent() {
     );
   }
 
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+// Admin Route wrapper
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { user, isAdmin, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || !isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+
+function AppContent() {
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar onNavigate={handleNavigate} currentPage={currentPage} />
+      <Navbar />
 
       <main className="flex-1">
-        {currentPage === 'home' && (
-          <>
-            <Hero
-              onGetStarted={() => handleNavigate(user ? 'projects' : 'signup')}
-              onBrowseProjects={() => handleNavigate('projects')}
-              onVisitStore={() => handleNavigate('store')}
-            />
-            <FeaturedProducts onVisitStore={() => handleNavigate('store')} />
-            <Stats />
-            <WhyChooseUs />
-            <HowItWorks />
-            <CallToAction onGetStarted={() => handleNavigate(user ? 'projects' : 'signup')} />
-          </>
-        )}
+        <Routes>
+          {/* Public routes */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/projects" element={<ProjectsPage />} />
+          <Route path="/projects/:id" element={<ProjectDetailPage />} />
+          <Route path="/store" element={<StorePage />} />
+          <Route path="/cart" element={<CartPage />} />
 
-        {currentPage === 'about' && (
-          <AboutPage />
-        )}
-
-        {currentPage === 'store' && (
-          <StorePage onNavigate={handleNavigate} />
-        )}
-
-        {currentPage === 'cart' && (
-          <CartPage onNavigate={handleNavigate} />
-        )}
-
-        {currentPage === 'login' && (
-          <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-            <div className="max-w-md w-full bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Welcome Back</h2>
-              <LoginForm
-                onToggleForm={() => handleNavigate('signup')}
-                onSuccess={() => handleNavigate('projects')}
-              />
-            </div>
-          </div>
-        )}
-
-        {currentPage === 'signup' && (
-          <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-            <div className="max-w-md w-full bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Create Account</h2>
-              <SignupForm
-                onToggleForm={() => handleNavigate('login')}
-                onSuccess={() => handleNavigate('projects')}
-              />
-            </div>
-          </div>
-        )}
-
-        {currentPage === 'projects' && (
-          <ProjectsPage onViewProject={handleViewProject} />
-        )}
-
-        {currentPage === 'project-detail' && selectedProjectId && (
-          <ProjectDetailPage
-            projectId={selectedProjectId}
-            onBack={() => handleNavigate('projects')}
-            onShowAuth={(tab) => handleNavigate(tab)}
+          {/* Protected routes (require authentication) */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <InvestorDashboard />
+              </ProtectedRoute>
+            }
           />
-        )}
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/favorites"
+            element={
+              <ProtectedRoute>
+                <FavoritesPage />
+              </ProtectedRoute>
+            }
+          />
 
-        {currentPage === 'dashboard' && user && (
-          <InvestorDashboard onViewProject={handleViewProject} />
-        )}
+          {/* Admin routes */}
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
 
-        {currentPage === 'admin' && user && isAdmin && (
-          <AdminDashboard />
-        )}
-
-        {currentPage === 'profile' && user && (
-          <ProfilePage />
-        )}
-
-        {currentPage === 'favorites' && user && (
-          <FavoritesPage onViewProject={handleViewProject} />
-        )}
+          {/* Catch all - redirect to home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </main>
 
-      <Footer onNavigate={handleNavigate} />
+      <Footer />
     </div>
   );
 }
 
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 
 export default App;
+

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { ProjectCard } from '../components/projects/ProjectCard';
 import { Filter, Search, Shield } from 'lucide-react';
@@ -18,11 +19,8 @@ interface Project {
   status: string;
 }
 
-interface ProjectsPageProps {
-  onViewProject: (projectId: string) => void;
-}
-
-export function ProjectsPage({ onViewProject }: ProjectsPageProps) {
+export function ProjectsPage() {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -192,7 +190,7 @@ export function ProjectsPage({ onViewProject }: ProjectsPageProps) {
                 <ProjectCard
                   key={project.id}
                   project={project}
-                  onViewDetails={onViewProject}
+                  onViewDetails={(id) => navigate(`/projects/${id}`)}
                 />
               ))}
             </div>

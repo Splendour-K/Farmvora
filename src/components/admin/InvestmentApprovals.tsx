@@ -98,34 +98,47 @@ export function InvestmentApprovals() {
 
     setLoading(true);
     try {
-      const { data: authData } = await supabase.auth.getUser();
+      console.log('Attempting to reject investment:', investmentId);
+      
+      // Use the admin_delete_investment function
+      const { data, error } = await supabase.rpc('admin_delete_investment', {
+        investment_id: investmentId
+      });
 
-      const { error } = await supabase
-        .from('investments')
-        .update({
-          status: 'rejected',
-          reviewed_by: authData.user?.id,
-          reviewed_at: new Date().toISOString(),
-          rejection_reason: reason,
-        })
-        .eq('id', investmentId);
+      if (error) {
+        console.error('RPC error:', error);
+        throw error;
+      }
 
-      if (error) throw error;
+      console.log('Delete response:', data);
 
-      await supabase.from('notifications').insert({
+      // Check if deletion was successful
+      if (data && !data.success) {
+        throw new Error(data.error || 'Failed to delete investment');
+      }
+
+      console.log('Investment deleted successfully');
+
+      // Send notification to user
+      const { error: notifError } = await supabase.from('notifications').insert({
         user_id: investorId,
         type: 'investment_rejected',
-        title: 'Investment Not Approved',
-        message: `Your investment of $${amount.toLocaleString()} was not approved. Reason: ${reason}`,
+        title: 'Investment Request Declined',
+        message: `Your investment request of $${amount.toLocaleString()} was not approved. Reason: ${reason}. You can submit a new investment request.`,
         link: '/dashboard',
         read: false,
       });
 
-      alert('Investment rejected');
+      if (notifError) {
+        console.error('Notification error:', notifError);
+        // Don't throw - notification failure shouldn't block the rejection
+      }
+
+      alert('Investment request rejected and removed');
       loadPendingInvestments();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error rejecting investment:', error);
-      alert('Failed to reject investment');
+      alert(`Failed to reject investment: ${error.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
     }

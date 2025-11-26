@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { ProjectCard } from '../components/projects/ProjectCard';
@@ -19,11 +20,8 @@ interface Project {
   status: string;
 }
 
-interface FavoritesPageProps {
-  onViewProject: (projectId: string) => void;
-}
-
-export function FavoritesPage({ onViewProject }: FavoritesPageProps) {
+export function FavoritesPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [favorites, setFavorites] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -98,7 +96,7 @@ export function FavoritesPage({ onViewProject }: FavoritesPageProps) {
                 <ProjectCard
                   key={project.id}
                   project={project}
-                  onViewDetails={onViewProject}
+                  onViewDetails={(id) => navigate(`/projects/${id}`)}
                 />
               ))}
             </div>

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { MapPin, Calendar, TrendingUp, Clock, Shield, ArrowLeft, DollarSign, AlertCircle, CheckCircle, Plus } from 'lucide-react';
+import { MapPin, Calendar, TrendingUp, Clock, Shield, ArrowLeft, DollarSign, CheckCircle, Plus } from 'lucide-react';
 import { ProjectQA } from '../components/projects/ProjectQA';
 
 interface Project {
@@ -39,13 +40,9 @@ interface UserInvestment {
   rejection_reason: string | null;
 }
 
-interface ProjectDetailPageProps {
-  projectId: string;
-  onBack: () => void;
-  onShowAuth?: (tab: 'login' | 'signup') => void;
-}
-
-export function ProjectDetailPage({ projectId, onBack, onShowAuth }: ProjectDetailPageProps) {
+export function ProjectDetailPage() {
+  const { id: projectId } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
   const [updates, setUpdates] = useState<WeeklyUpdate[]>([]);
@@ -57,10 +54,41 @@ export function ProjectDetailPage({ projectId, onBack, onShowAuth }: ProjectDeta
   const [investing, setInvesting] = useState(false);
 
   useEffect(() => {
+    if (!projectId) {
+      navigate('/projects');
+      return;
+    }
     loadProjectDetails();
-  }, [projectId, user]);
+
+    // Set up realtime subscription for investment changes
+    if (user && projectId) {
+      const channel = supabase
+        .channel(`project-investments-${projectId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'investments',
+            filter: `project_id=eq.${projectId}`,
+          },
+          (payload) => {
+            console.log('Investment changed:', payload);
+            // Reload investments when there's any change (delete, update, insert)
+            loadProjectDetails();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [projectId, user, navigate]);
 
   const loadProjectDetails = async () => {
+    if (!projectId) return;
+    
     try {
       const [projectRes, updatesRes] = await Promise.all([
         supabase.from('projects').select('*').eq('id', projectId).single(),
@@ -162,7 +190,7 @@ export function ProjectDetailPage({ projectId, onBack, onShowAuth }: ProjectDeta
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <p className="text-gray-600 mb-4">Project not found</p>
-          <button onClick={onBack} className="text-green-600 hover:text-green-700">
+          <button onClick={() => navigate('/projects')} className="text-green-600 hover:text-green-700">
             Go back
           </button>
         </div>
@@ -174,7 +202,6 @@ export function ProjectDetailPage({ projectId, onBack, onShowAuth }: ProjectDeta
   const totalUserInvestment = userInvestments.filter(inv => inv.status === 'approved').reduce((sum, inv) => sum + inv.amount, 0);
   const pendingInvestment = userInvestments.find(inv => inv.status === 'pending');
   const hasApprovedInvestment = userInvestments.some(inv => inv.status === 'approved');
-  const rejectedInvestments = userInvestments.filter(inv => inv.status === 'rejected');
   
   // Determine if investment is allowed
   const isProjectActive = project.status === 'active';
@@ -201,7 +228,7 @@ export function ProjectDetailPage({ projectId, onBack, onShowAuth }: ProjectDeta
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <button
-            onClick={onBack}
+            onClick={() => navigate('/projects')}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -219,13 +246,13 @@ export function ProjectDetailPage({ projectId, onBack, onShowAuth }: ProjectDeta
             </p>
             <div className="flex gap-4 justify-center">
               <button
-                onClick={() => onShowAuth && onShowAuth('login')}
+                onClick={() => navigate('/login')}
                 className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold"
               >
                 Log In
               </button>
               <button
-                onClick={() => onShowAuth && onShowAuth('signup')}
+                onClick={() => navigate('/signup')}
                 className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold"
               >
                 Sign Up
@@ -241,7 +268,7 @@ export function ProjectDetailPage({ projectId, onBack, onShowAuth }: ProjectDeta
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <button
-          onClick={onBack}
+          onClick={() => navigate('/projects')}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -330,23 +357,6 @@ export function ProjectDetailPage({ projectId, onBack, onShowAuth }: ProjectDeta
                         </div>
                       )}
                     </>
-                  )}
-
-                  {rejectedInvestments.length > 0 && (
-                    <div className="mt-2">
-                      {rejectedInvestments.map((inv) => (
-                        <div key={inv.id} className="flex items-start gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-lg mb-2">
-                          <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
-                          <div>
-                            <p className="font-semibold text-red-900">Investment Rejected</p>
-                            <p className="text-sm text-red-700">${inv.amount.toLocaleString()}</p>
-                            {inv.rejection_reason && (
-                              <p className="text-sm text-red-600 mt-1">{inv.rejection_reason}</p>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
                   )}
                 </div>
               )}
@@ -465,7 +475,7 @@ export function ProjectDetailPage({ projectId, onBack, onShowAuth }: ProjectDeta
           </div>
         )}
 
-        <ProjectQA projectId={projectId} />
+        {projectId && <ProjectQA projectId={projectId} />}
       </div>
 
       {showInvestModal && (

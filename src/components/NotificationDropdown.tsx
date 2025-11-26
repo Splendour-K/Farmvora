@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Bell, Check, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -13,12 +14,9 @@ interface Notification {
   created_at: string;
 }
 
-interface NotificationDropdownProps {
-  onNavigate: (page: string, projectId?: string) => void;
-}
-
-export function NotificationDropdown({ onNavigate }: NotificationDropdownProps) {
+export function NotificationDropdown() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -138,9 +136,9 @@ export function NotificationDropdown({ onNavigate }: NotificationDropdownProps) 
     if (notification.link) {
       if (notification.link.startsWith('/project/')) {
         const projectId = notification.link.split('/')[2];
-        onNavigate('project-detail', projectId);
+        navigate(`/projects/${projectId}`);
       } else {
-        onNavigate(notification.link.replace('/', ''));
+        navigate(notification.link);
       }
     }
 

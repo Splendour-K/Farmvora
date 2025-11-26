@@ -1,15 +1,12 @@
 import { Sprout, Mail, MapPin, Phone, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-interface FooterProps {
-  onNavigate?: (page: string) => void;
-}
-
-export function Footer({ onNavigate }: FooterProps = {}) {
-  const handleNavigation = (page: string) => {
-    if (onNavigate) {
-      onNavigate(page);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+export function Footer() {
+  const navigate = useNavigate();
+  
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -47,17 +44,17 @@ export function Footer({ onNavigate }: FooterProps = {}) {
             <h3 className="font-semibold mb-3 sm:mb-4 text-sm sm:text-base">Quick Links</h3>
             <ul className="space-y-2 text-xs sm:text-sm text-gray-400">
               <li>
-                <button onClick={() => handleNavigation('about')} className="hover:text-white transition-colors text-left">
+                <button onClick={() => handleNavigation('/about')} className="hover:text-white transition-colors text-left">
                   About Us
                 </button>
               </li>
               <li>
-                <button onClick={() => handleNavigation('projects')} className="hover:text-white transition-colors text-left">
+                <button onClick={() => handleNavigation('/projects')} className="hover:text-white transition-colors text-left">
                   Browse Projects
                 </button>
               </li>
               <li>
-                <button onClick={() => handleNavigation('store')} className="hover:text-white transition-colors text-left">
+                <button onClick={() => handleNavigation('/store')} className="hover:text-white transition-colors text-left">
                   Farm Store
                 </button>
               </li>
