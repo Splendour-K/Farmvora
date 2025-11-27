@@ -248,18 +248,31 @@ export function AdminDashboard() {
   };
 
   const handleDeleteProject = async (projectId: string) => {
-    if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+    if (!confirm('Are you sure you want to delete this project? This action cannot be undone. All related investments, updates, and data will be deleted.')) {
       return;
     }
 
     try {
-      const { error } = await supabase.from('projects').delete().eq('id', projectId);
-      if (error) throw error;
+      // Use the admin_delete_project function
+      const { data, error } = await supabase.rpc('admin_delete_project', {
+        project_id_param: projectId
+      });
+
+      if (error) {
+        console.error('RPC error:', error);
+        throw error;
+      }
+
+      // Check if deletion was successful
+      if (data && !data.success) {
+        throw new Error(data.error || 'Failed to delete project');
+      }
+
       alert('Project deleted successfully');
       loadProjects();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting project:', error);
-      alert('Failed to delete project');
+      alert(`Failed to delete project: ${error.message || 'Unknown error'}`);
     }
   };
 

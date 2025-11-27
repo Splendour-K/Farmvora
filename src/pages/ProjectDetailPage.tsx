@@ -98,7 +98,14 @@ export function ProjectDetailPage() {
       ]);
 
       if (projectRes.error) throw projectRes.error;
-      setProject(projectRes.data);
+      
+      // Ensure currency has a default value if not set
+      const projectData = {
+        ...projectRes.data,
+        currency: projectRes.data.currency || 'NGN'
+      };
+      
+      setProject(projectData as Project);
       setUpdates(updatesRes.data || []);
 
       if (user) {
