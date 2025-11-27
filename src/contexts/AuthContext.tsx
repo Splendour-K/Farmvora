@@ -36,7 +36,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        checkAdminRole(session.user);
         loadProfile(session.user.id);
       } else {
         setLoading(false);
@@ -48,7 +47,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          checkAdminRole(session.user);
           await loadProfile(session.user.id);
         } else {
           setProfile(null);
@@ -61,12 +59,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const checkAdminRole = (user: User) => {
-    const appMetadata = user.app_metadata || {};
-    const isAdminUser = appMetadata.role === 'admin';
-    setIsAdmin(isAdminUser);
-  };
-
   const loadProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -76,7 +68,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .maybeSingle();
 
       if (error) throw error;
-      setProfile(data);
+      setProfile(data as Profile | null);
+      
+      // Set admin status based on profile role
+      if (data) {
+        setIsAdmin((data as any).role === 'admin');
+      }
     } catch (error) {
       console.error('Error loading profile:', error);
     } finally {
