@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { MapPin, Calendar, TrendingUp, Clock, Heart } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { formatCurrency } from '../../lib/currency';
 
 interface Project {
   id: string;
@@ -17,6 +18,7 @@ interface Project {
   expected_harvest_date: string;
   risk_level: string;
   status: string;
+  currency: string;
 }
 
 interface ProjectCardProps {
@@ -167,8 +169,8 @@ export function ProjectCard({ project, onViewDetails }: ProjectCardProps) {
               />
             </div>
             <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>₦{currentFunding.toLocaleString()} raised</span>
-              <span>{isFunded ? 'Complete!' : `₦${remaining.toLocaleString()} remaining`}</span>
+              <span>{formatCurrency(currentFunding, project.currency || 'NGN')} raised</span>
+              <span>{isFunded ? 'Complete!' : `${formatCurrency(remaining, project.currency || 'NGN')} remaining`}</span>
             </div>
           </div>
 
