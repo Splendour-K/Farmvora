@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { formatCurrency, getCurrencySymbol } from '../lib/currency';
 import { MapPin, Calendar, TrendingUp, Clock, Shield, ArrowLeft, DollarSign, CheckCircle, Plus } from 'lucide-react';
 import { ProjectQA } from '../components/projects/ProjectQA';
 
@@ -19,6 +20,7 @@ interface Project {
   expected_harvest_date: string;
   risk_level: string;
   status: string;
+  currency: string;
   owner_name: string;
   owner_bio: string | null;
 }
@@ -304,7 +306,7 @@ export function ProjectDetailPage() {
                       <Clock className="w-5 h-5 text-orange-600" />
                       <div>
                         <p className="font-semibold text-orange-900">Investment Pending</p>
-                        <p className="text-sm text-orange-700">${pendingInvestment.amount.toLocaleString()} awaiting approval</p>
+                        <p className="text-sm text-orange-700">{formatCurrency(pendingInvestment.amount, project.currency)} awaiting approval</p>
                       </div>
                     </div>
                   ) : hasApprovedInvestment ? (
@@ -313,7 +315,7 @@ export function ProjectDetailPage() {
                         <CheckCircle className="w-5 h-5 text-green-600" />
                         <div>
                           <p className="font-semibold text-green-900">Active Investment</p>
-                          <p className="text-sm text-green-700">Total: ${totalUserInvestment.toLocaleString()}</p>
+                          <p className="text-sm text-green-700">Total: {formatCurrency(totalUserInvestment, project.currency)}</p>
                         </div>
                       </div>
                       {canInvest && (
@@ -410,9 +412,9 @@ export function ProjectDetailPage() {
                 />
               </div>
               <div className="flex justify-between text-sm">
-                <span className="font-semibold text-gray-900">${project.current_funding.toLocaleString()} raised</span>
+                <span className="font-semibold text-gray-900">{formatCurrency(project.current_funding, project.currency)} raised</span>
                 <span className="text-gray-600">{fundingPercentage.toFixed(1)}%</span>
-                <span className="font-semibold text-gray-900">${project.required_capital.toLocaleString()} goal</span>
+                <span className="font-semibold text-gray-900">{formatCurrency(project.required_capital, project.currency)} goal</span>
               </div>
             </div>
 
@@ -488,7 +490,7 @@ export function ProjectDetailPage() {
             {isAddingFunds && (
               <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                 <p className="text-sm text-green-900">
-                  <span className="font-semibold">Current Investment:</span> ${totalUserInvestment.toLocaleString()}
+                  <span className="font-semibold">Current Investment:</span> {formatCurrency(totalUserInvestment, project.currency)}
                 </p>
               </div>
             )}
@@ -503,10 +505,12 @@ export function ProjectDetailPage() {
 
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Investment Amount ($)
+                Investment Amount ({project.currency})
               </label>
               <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-semibold">
+                  {getCurrencySymbol(project.currency)}
+                </span>
                 <input
                   type="number"
                   value={investAmount}
@@ -521,13 +525,13 @@ export function ProjectDetailPage() {
                 <div className="mt-3 space-y-1">
                   <p className="text-sm text-gray-600">
                     Expected return: <span className="font-semibold text-green-600">
-                      ${(parseFloat(investAmount) * (project.expected_roi / 100)).toFixed(2)}
+                      {formatCurrency(parseFloat(investAmount) * (project.expected_roi / 100), project.currency)}
                     </span>
                   </p>
                   {isAddingFunds && (
                     <p className="text-sm text-gray-600">
                       New total: <span className="font-semibold">
-                        ${(totalUserInvestment + parseFloat(investAmount)).toLocaleString()}
+                        {formatCurrency(totalUserInvestment + parseFloat(investAmount), project.currency)}
                       </span>
                     </p>
                   )}
