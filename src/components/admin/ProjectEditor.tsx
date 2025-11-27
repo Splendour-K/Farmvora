@@ -17,8 +17,7 @@ interface Project {
   expected_harvest_date: string;
   risk_level: string;
   status: string;
-  owner_name: string;
-  owner_bio: string;
+  currency: string;
   emergency_buffer_percentage: number;
   amount_raised_usd: number;
   amount_raised_ngn: number;
@@ -172,24 +171,24 @@ function ProjectFormComponent({ formData, setFormData, onSave, onCancel, isEdit 
           </select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Owner Name</label>
-          <input
-            type="text"
-            value={formData.owner_name || ''}
-            onChange={(e) => setFormData({ ...formData, owner_name: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-          />
-        </div>
-
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Owner Bio</label>
-          <textarea
-            rows={2}
-            value={formData.owner_bio || ''}
-            onChange={(e) => setFormData({ ...formData, owner_bio: e.target.value })}
+          <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+          <select
+            value={formData.currency || 'NGN'}
+            onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-          />
+          >
+            <option value="NGN">🇳🇬 Nigerian Naira (₦)</option>
+            <option value="USD">🇺🇸 US Dollar ($)</option>
+            <option value="GHS">🇬🇭 Ghanaian Cedi (₵)</option>
+            <option value="KES">🇰🇪 Kenyan Shilling (KSh)</option>
+            <option value="ZAR">🇿🇦 South African Rand (R)</option>
+            <option value="EUR">🇪🇺 Euro (€)</option>
+            <option value="GBP">🇬🇧 British Pound (£)</option>
+          </select>
+          <p className="text-sm text-gray-500 mt-1">
+            Select the currency for this project. All investments and returns will be calculated in this currency.
+          </p>
         </div>
       </div>
 
@@ -230,8 +229,7 @@ export function ProjectEditor() {
     expected_harvest_date: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     risk_level: 'low',
     status: 'active',
-    owner_name: '',
-    owner_bio: '',
+    currency: 'NGN',
     emergency_buffer_percentage: 10,
   });
 
@@ -331,8 +329,7 @@ export function ProjectEditor() {
       expected_harvest_date: project.expected_harvest_date,
       risk_level: project.risk_level,
       status: project.status,
-      owner_name: project.owner_name,
-      owner_bio: project.owner_bio,
+      currency: project.currency || 'NGN',
       emergency_buffer_percentage: project.emergency_buffer_percentage,
     });
   };
@@ -350,8 +347,7 @@ export function ProjectEditor() {
       expected_harvest_date: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       risk_level: 'low',
       status: 'active',
-      owner_name: '',
-      owner_bio: '',
+      currency: 'NGN',
       emergency_buffer_percentage: 10,
     });
   };

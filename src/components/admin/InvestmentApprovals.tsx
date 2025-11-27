@@ -60,33 +60,31 @@ export function InvestmentApprovals() {
   const handleApprove = async (investmentId: string, investorId: string, projectId: string, amount: number) => {
     setLoading(true);
     try {
-      const { data: authData } = await supabase.auth.getUser();
-
-      const { error } = await supabase
-        .from('investments')
-        .update({
-          status: 'approved',
-          reviewed_by: authData.user?.id,
-          reviewed_at: new Date().toISOString(),
-        })
-        .eq('id', investmentId);
-
-      if (error) throw error;
-
-      await supabase.from('notifications').insert({
-        user_id: investorId,
-        type: 'investment_approved',
-        title: 'Investment Approved',
-        message: `Your investment of $${amount.toLocaleString()} has been approved!`,
-        link: `/project/${projectId}`,
-        read: false,
+      console.log('Approving investment:', investmentId);
+      
+      // Use the approve_investment function which handles everything
+      const { data, error } = await supabase.rpc('approve_investment', {
+        investment_id: investmentId
       });
 
-      alert('Investment approved successfully!');
+      if (error) {
+        console.error('RPC error:', error);
+        throw error;
+      }
+
+      console.log('Approval response:', data);
+
+      // Check if approval was successful
+      if (data && !data.success) {
+        throw new Error(data.error || 'Failed to approve investment');
+      }
+
+      console.log('Investment approved successfully');
+      alert(`Investment approved! Balance credited: ${data.data.currency} ${data.data.total_return}`);
       loadPendingInvestments();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error approving investment:', error);
-      alert('Failed to approve investment');
+      alert(`Failed to approve investment: ${error.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
