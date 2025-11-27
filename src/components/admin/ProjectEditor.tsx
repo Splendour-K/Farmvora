@@ -83,14 +83,16 @@ function ProjectFormComponent({ formData, setFormData, onSave, onCancel, isEdit 
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Required Capital (USD)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Required Capital</label>
           <input
             type="number"
             step="0.01"
             value={formData.required_capital || 0}
             onChange={(e) => setFormData({ ...formData, required_capital: parseFloat(e.target.value) || 0 })}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+            placeholder="Amount in selected currency"
           />
+          <p className="text-xs text-gray-500 mt-1">Amount will be in the currency selected below</p>
         </div>
 
         <div>
@@ -189,6 +191,14 @@ function ProjectFormComponent({ formData, setFormData, onSave, onCancel, isEdit 
           <p className="text-sm text-gray-500 mt-1">
             Select the currency for this project. All investments and returns will be calculated in this currency.
           </p>
+        </div>
+
+        <div className="col-span-2">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <p className="text-sm text-green-800">
+              <span className="font-semibold">Project Owner:</span> All projects are owned and coordinated by <span className="font-bold">Farm Vora</span>
+            </p>
+          </div>
         </div>
       </div>
 
