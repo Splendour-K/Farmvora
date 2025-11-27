@@ -252,7 +252,10 @@ export function AdminDashboard() {
       return;
     }
 
+    setLoading(true);
     try {
+      console.log('Deleting project:', projectId);
+      
       // Use the admin_delete_project function
       const { data, error } = await supabase.rpc('admin_delete_project', {
         project_id_param: projectId
@@ -263,16 +266,25 @@ export function AdminDashboard() {
         throw error;
       }
 
+      console.log('Delete response:', data);
+
       // Check if deletion was successful
       if (data && !data.success) {
         throw new Error(data.error || 'Failed to delete project');
       }
 
+      // Immediately remove from local state for instant UI update
+      setProjects(prev => prev.filter(p => p.id !== projectId));
+      
       alert('Project deleted successfully');
-      loadProjects();
+      
+      // Reload to ensure consistency
+      await loadProjects();
     } catch (error: any) {
       console.error('Error deleting project:', error);
       alert(`Failed to delete project: ${error.message || 'Unknown error'}`);
+    } finally {
+      setLoading(false);
     }
   };
 
