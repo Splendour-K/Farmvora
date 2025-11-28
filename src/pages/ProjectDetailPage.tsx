@@ -427,16 +427,16 @@ export function ProjectDetailPage() {
             </div>
 
             <div className="mb-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-3">Funding Progress</h2>
-              <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Funding Progress</h2>
+              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden mb-3">
                 <div
-                  className="bg-green-600 h-4 rounded-full transition-all"
+                  className="bg-green-600 h-full rounded-full transition-all duration-500 ease-out"
                   style={{ width: `${Math.min(fundingPercentage, 100)}%` }}
                 />
               </div>
               <div className="flex justify-between text-sm mb-3">
                 <span className="font-semibold text-gray-900">{formatCurrency(project.current_funding, project.currency)} raised</span>
-                <span className="text-gray-600">{fundingPercentage.toFixed(1)}%</span>
+                <span className="font-semibold text-green-600">{fundingPercentage.toFixed(1)}%</span>
                 <span className="font-semibold text-gray-900">{formatCurrency(project.required_capital, project.currency)} goal</span>
               </div>
               {fundingPercentage < 100 && (

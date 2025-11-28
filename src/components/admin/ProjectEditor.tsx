@@ -464,15 +464,15 @@ export function ProjectEditor() {
                 </div>
 
                 <div className="mb-4">
-                  <div className="flex justify-between text-sm mb-1">
+                  <div className="flex justify-between text-sm mb-2">
                     <span className="text-gray-600">Funding Progress</span>
-                    <span className="font-semibold text-gray-900">
+                    <span className="font-semibold text-green-600">
                       {((project.amount_raised_ngn || 0) / project.required_capital * 100).toFixed(1)}%
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
                     <div
-                      className="bg-green-600 h-2 rounded-full transition-all"
+                      className="bg-green-600 h-full rounded-full transition-all duration-500 ease-out"
                       style={{ width: `${Math.min(((project.amount_raised_ngn || 0) / project.required_capital) * 100, 100)}%` }}
                     />
                   </div>

@@ -155,20 +155,21 @@ export function ProjectCard({ project, onViewDetails }: ProjectCardProps) {
 
         <div className="space-y-3 mb-4">
           <div>
-            <div className="flex justify-between text-sm mb-1">
+            <div className="flex justify-between text-sm mb-2">
               <span className="text-gray-600">Funding Progress</span>
               <span className={`font-semibold ${isFunded ? 'text-green-600' : 'text-gray-900'}`}>
                 {fundingPercentage.toFixed(0)}%
-                {isFunded && ' - Fully Funded!'}
               </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
               <div
-                className={`h-2 rounded-full transition-all ${isFunded ? 'bg-green-500' : 'bg-green-600'}`}
+                className={`h-full rounded-full transition-all duration-500 ease-out ${
+                  isFunded ? 'bg-green-500' : 'bg-green-600'
+                }`}
                 style={{ width: `${Math.min(fundingPercentage, 100)}%` }}
               />
             </div>
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <div className="flex justify-between text-xs text-gray-500 mt-1.5">
               <span>{formatCurrency(currentFunding, project.currency || 'NGN')} raised</span>
               <span>{isFunded ? 'Complete!' : `${formatCurrency(remaining, project.currency || 'NGN')} remaining`}</span>
             </div>
