@@ -141,6 +141,22 @@ export function ProjectDetailPage() {
       return;
     }
 
+    // Calculate remaining funding needed
+    const currentFunding = project.current_funding || 0;
+    const remainingNeeded = project.required_capital - currentFunding;
+
+    // Check if investment would exceed funding goal
+    if (amount > remainingNeeded) {
+      alert(`Investment amount exceeds remaining funding needed!\n\nRemaining needed: ${formatCurrency(remainingNeeded, project.currency)}\nYour amount: ${formatCurrency(amount, project.currency)}\n\nPlease invest ${formatCurrency(remainingNeeded, project.currency)} or less.`);
+      return;
+    }
+
+    // Check if project is already fully funded
+    if (remainingNeeded <= 0) {
+      alert('This project is already fully funded!');
+      return;
+    }
+
     setInvesting(true);
 
     try {
@@ -418,11 +434,25 @@ export function ProjectDetailPage() {
                   style={{ width: `${Math.min(fundingPercentage, 100)}%` }}
                 />
               </div>
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between text-sm mb-3">
                 <span className="font-semibold text-gray-900">{formatCurrency(project.current_funding, project.currency)} raised</span>
                 <span className="text-gray-600">{fundingPercentage.toFixed(1)}%</span>
                 <span className="font-semibold text-gray-900">{formatCurrency(project.required_capital, project.currency)} goal</span>
               </div>
+              {fundingPercentage < 100 && (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    <strong>Remaining needed:</strong> {formatCurrency(project.required_capital - (project.current_funding || 0), project.currency)}
+                  </p>
+                </div>
+              )}
+              {fundingPercentage >= 100 && (
+                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-sm text-green-800 font-semibold">
+                    ✓ Project is fully funded!
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="mb-8">
@@ -502,6 +532,27 @@ export function ProjectDetailPage() {
               </div>
             )}
 
+            {/* Show remaining funding needed */}
+            {!isProjectUpcoming && (
+              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                {fundingPercentage < 100 ? (
+                  <div className="space-y-2">
+                    <p className="text-sm text-blue-900">
+                      <span className="font-semibold">Remaining Funding Needed:</span>{' '}
+                      {formatCurrency(project.required_capital - (project.current_funding || 0), project.currency)}
+                    </p>
+                    <p className="text-xs text-blue-700">
+                      Current progress: {fundingPercentage.toFixed(1)}% funded
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-green-900 font-semibold">
+                    ✓ This project is fully funded!
+                  </p>
+                )}
+              </div>
+            )}
+
             {isProjectUpcoming && !isAddingFunds && (
               <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-sm text-blue-900">
@@ -573,10 +624,12 @@ export function ProjectDetailPage() {
               </button>
               <button
                 onClick={handleInvest}
-                disabled={investing || !investAmount || parseFloat(investAmount) <= 0}
-                className={`flex-1 px-4 py-2 ${isProjectUpcoming ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'} text-white rounded-lg disabled:opacity-50`}
+                disabled={investing || !investAmount || parseFloat(investAmount) <= 0 || (fundingPercentage >= 100 && !isProjectUpcoming)}
+                className={`flex-1 px-4 py-2 ${isProjectUpcoming ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'} text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all`}
               >
-                {investing ? 'Processing...' : isProjectUpcoming ? 'Submit Interest' : 'Submit for Approval'}
+                {investing ? 'Processing...' : 
+                 fundingPercentage >= 100 && !isProjectUpcoming ? 'Fully Funded' :
+                 isProjectUpcoming ? 'Submit Interest' : 'Submit for Approval'}
               </button>
             </div>
           </div>
