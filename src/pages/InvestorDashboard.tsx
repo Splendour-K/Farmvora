@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { formatCurrency } from '../lib/currency';
+import { CurrencyBreakdown } from '../components/dashboard/CurrencyBreakdown';
 import { TrendingUp, DollarSign, Briefcase, Calendar, Trash2, Clock, CheckCircle, XCircle } from 'lucide-react';
 
 interface Investment {
@@ -200,6 +201,15 @@ export function InvestorDashboard() {
             </div>
           </div>
         </div>
+
+        {/* Currency Breakdown */}
+        {investments.length > 0 && (
+          <CurrencyBreakdown 
+            investments={investments} 
+            title="Your Investments by Currency"
+            showOnlyApproved={true}
+          />
+        )}
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="p-4 sm:p-6 border-b border-gray-200">

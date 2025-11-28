@@ -10,6 +10,7 @@ import { InvestmentApprovals } from '../components/admin/InvestmentApprovals';
 import { QuestionApprovals } from '../components/admin/QuestionApprovals';
 import { ProductManagement } from '../components/admin/ProductManagement';
 import { ProjectEditor } from '../components/admin/ProjectEditor';
+import { CurrencyBreakdown } from '../components/dashboard/CurrencyBreakdown';
 
 interface Project {
   id: string;
@@ -925,6 +926,18 @@ export function AdminDashboard() {
                     </div>
                   </div>
                 </div>
+
+                {/* Currency Breakdown for All Users */}
+                {investments.length > 0 && (
+                  <div className="mb-6">
+                    <CurrencyBreakdown 
+                      investments={investments} 
+                      title="Total Platform Investments by Currency (All Users)"
+                      showOnlyApproved={false}
+                    />
+                  </div>
+                )}
+
                 {investments.length === 0 ? (
                   <div className="text-center py-12">
                     <p className="text-gray-600">No investments yet.</p>

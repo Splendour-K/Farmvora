@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
+import { formatCurrency } from '../../lib/currency';
 import { Check, X, Clock, DollarSign } from 'lucide-react';
 
 interface PendingInvestment {
@@ -15,6 +16,7 @@ interface PendingInvestment {
   };
   project: {
     title: string;
+    currency: string;
   };
 }
 
@@ -40,10 +42,10 @@ export function InvestmentApprovals() {
           investor_id,
           project_id,
           investor:investor_id(email, full_name),
-          project:project_id(title)
+          project:project_id(title, currency)
         `)
         .eq('status', 'pending')
-        .order('invested_at', { ascending: false });
+        .order('invested_at', { ascending: false});
 
       if (error) {
         console.error('Error loading pending investments:', error);
@@ -122,7 +124,7 @@ export function InvestmentApprovals() {
         user_id: investorId,
         type: 'investment_rejected',
         title: 'Investment Request Declined',
-        message: `Your investment request of $${amount.toLocaleString()} was not approved. Reason: ${reason}. You can submit a new investment request.`,
+        message: `Your investment request was not approved. Reason: ${reason}. You can submit a new investment request.`,
         link: '/dashboard',
         read: false,
       });
@@ -169,7 +171,7 @@ export function InvestmentApprovals() {
                   <div className="flex items-center gap-3 mb-2">
                     <DollarSign className="w-5 h-5 text-green-600" />
                     <h3 className="text-xl font-bold text-gray-900">
-                      ${investment.amount.toLocaleString()}
+                      {formatCurrency(investment.amount, investment.project?.currency || 'NGN')}
                     </h3>
                     <span className="px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-700">
                       Pending Review
