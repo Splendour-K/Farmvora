@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { formatCurrency } from '../lib/currency';
 import { TrendingUp, DollarSign, Briefcase, Calendar, Trash2, Clock, CheckCircle, XCircle } from 'lucide-react';
 
 interface Investment {
@@ -17,6 +18,7 @@ interface Investment {
     status: string;
     expected_roi: number;
     expected_harvest_date: string;
+    currency: string;
   };
 }
 
@@ -67,7 +69,7 @@ export function InvestorDashboard() {
         .from('investments')
         .select(`
           *,
-          project:projects(id, title, category, status, expected_roi, expected_harvest_date)
+          project:projects(id, title, category, status, expected_roi, expected_harvest_date, currency)
         `)
         .eq('investor_id', user.id)
         .order('invested_at', { ascending: false});
@@ -125,6 +127,9 @@ export function InvestorDashboard() {
   // Check if there are any pending investments
   const hasPendingInvestments = pendingInvestments.length > 0;
   const pendingAmount = pendingInvestments.reduce((sum, inv) => sum + inv.amount, 0);
+  
+  // Get currency from first investment (all should have same currency for now)
+  const currency = investments[0]?.project?.currency || 'NGN';
 
   if (loading) {
     return (
@@ -154,10 +159,10 @@ export function InvestorDashboard() {
               <span className="text-xs sm:text-sm text-gray-600">Total Invested</span>
             </div>
             <div className="text-2xl sm:text-3xl font-bold text-gray-900">
-              ${totalInvested.toLocaleString()}
+              {formatCurrency(totalInvested, currency)}
               {hasPendingInvestments && (
                 <span className="block text-sm font-normal text-yellow-600 mt-1">
-                  + ${pendingAmount.toLocaleString()} Pending
+                  + {formatCurrency(pendingAmount, currency)} Pending
                 </span>
               )}
             </div>
@@ -170,7 +175,7 @@ export function InvestorDashboard() {
               </div>
               <span className="text-xs sm:text-sm text-gray-600">Expected Returns</span>
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-gray-900">${totalExpectedReturns.toLocaleString()}</div>
+            <div className="text-2xl sm:text-3xl font-bold text-gray-900">{formatCurrency(totalExpectedReturns, currency)}</div>
           </div>
 
           <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200">
@@ -191,7 +196,7 @@ export function InvestorDashboard() {
               <span className="text-xs sm:text-sm text-gray-600">Potential Profit</span>
             </div>
             <div className="text-2xl sm:text-3xl font-bold text-gray-900">
-              ${(totalExpectedReturns - totalInvested).toLocaleString()}
+              {formatCurrency(totalExpectedReturns - totalInvested, currency)}
             </div>
           </div>
         </div>
@@ -225,11 +230,11 @@ export function InvestorDashboard() {
                     <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
                       <div>
                         <div className="text-xs text-gray-500 mb-1">Amount Invested</div>
-                        <div className="font-semibold text-gray-900">${investment.amount.toLocaleString()}</div>
+                        <div className="font-semibold text-gray-900">{formatCurrency(investment.amount, investment.project.currency)}</div>
                       </div>
                       <div>
                         <div className="text-xs text-gray-500 mb-1">Expected Return</div>
-                        <div className="font-semibold text-green-600">${investment.expected_return.toLocaleString()}</div>
+                        <div className="font-semibold text-green-600">{formatCurrency(investment.expected_return, investment.project.currency)}</div>
                       </div>
                       <div>
                         <div className="text-xs text-gray-500 mb-1">Status</div>
@@ -319,10 +324,10 @@ export function InvestorDashboard() {
                           {investment.project.category}
                         </td>
                         <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-                          ${investment.amount.toLocaleString()}
+                          {formatCurrency(investment.amount, investment.project.currency)}
                         </td>
                         <td className="px-6 py-4 text-sm font-semibold text-green-600">
-                          ${investment.expected_return.toLocaleString()}
+                          {formatCurrency(investment.expected_return, investment.project.currency)}
                         </td>
                         <td className="px-6 py-4">
                           <span

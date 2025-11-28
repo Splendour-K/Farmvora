@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Delete Project</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <h1>Test Project Deletion</h1>
+  <div>
+    <h2>Step 1: Login as Admin</h2>
+    <input type="email" id="email" placeholder="Admin email" value="">
+    <input type="password" id="password" placeholder="Password" value="">
+    <button onclick="login()">Login</button>
+    <p id="loginStatus"></p>
+  </div>
+  
+  <div>
+    <h2>Step 2: List Projects</h2>
+    <button onclick="listProjects()">Load Projects</button>
+    <div id="projectsList"></div>
+  </div>
+  
+  <div>
+    <h2>Step 3: Delete Project</h2>
+    <input type="text" id="projectId" placeholder="Project ID">
+    <button onclick="deleteProject()">Delete Project</button>
+    <p id="deleteStatus"></p>
+  </div>
+
+  <script>
+    const supabaseUrl = 'https://jqxpyaixoqtbpxslqfdc.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpxeHB5YWl4b3F0YnB4c2xxZmRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4OTA0OTMsImV4cCI6MjA3OTQ2NjQ5M30.dYhRpn1uruLEB8oXCa7lhfsWQRvHRxT0Z5htAjJoPN0';
+    
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    async function login() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error) {
+        document.getElementById('loginStatus').innerText = 'Error: ' + error.message;
+        console.error('Login error:', error);
+      } else {
+        document.getElementById('loginStatus').innerText = 'Logged in as: ' + data.user.email;
+        console.log('User:', data.user);
+        
+        // Check profile and role
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+        
+        console.log('Profile:', profile);
+      }
+    }
+
+    async function listProjects() {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('id, title, status')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error loading projects:', error);
+        document.getElementById('projectsList').innerHTML = 'Error: ' + error.message;
+      } else {
+        console.log('Projects:', data);
+        let html = '<ul>';
+        data.forEach(p => {
+          html += `<li><strong>${p.title}</strong> (${p.status}) - ID: ${p.id}</li>`;
+        });
+        html += '</ul>';
+        document.getElementById('projectsList').innerHTML = html;
+      }
+    }
+
+    async function deleteProject() {
+      const projectId = document.getElementById('projectId').value;
+      
+      console.log('Attempting to delete project:', projectId);
+      
+      const { data, error } = await supabase.rpc('admin_delete_project', {
+        project_id_param: projectId
+      });
+      
+      console.log('RPC Response:', { data, error });
+      
+      if (error) {
+        document.getElementById('deleteStatus').innerText = 'Error: ' + error.message;
+        console.error('Delete error:', error);
+      } else {
+        document.getElementById('deleteStatus').innerText = 'Response: ' + JSON.stringify(data);
+        console.log('Delete response:', data);
+        
+        // Reload projects
+        await listProjects();
+      }
+    }
+  </script>
+</body>
+</html>
